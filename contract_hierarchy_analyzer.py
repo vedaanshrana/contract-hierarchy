@@ -109,9 +109,9 @@ FISERV_EMAIL        = os.environ.get("FISERV_EMAIL", "").strip()
 FISERV_PURPOSE_GPT5 = os.environ.get("FISERV_PURPOSE_GPT5", "").strip()   # X-Purpose tag for gpt-5.x models
 FISERV_PURPOSE_GPT4 = os.environ.get("FISERV_PURPOSE_GPT4", "").strip()   # X-Purpose tag for everything else
 
-OPENAI_MODEL    = "gpt-5.2"         # confirmed from team's existing code
+OPENAI_MODEL    = "gpt-5.1"         # confirmed from team's existing code
 DPI             = 600               # image render quality (team's setting)
-CHUNK_SIZE      = 8                # pages per API call (team's setting)
+CHUNK_SIZE      = 12                # pages per API call (team's setting)
 MAX_CHUNKS      = 2                 # max chunks per contract (24 pages covers title + body; exhibits have no hierarchy signals)
 CONTRACTS_ROOT  = str(_SCRIPT_DIR)                                   # root folder; one subfolder per client
 OUTPUT_DIR      = str(_SCRIPT_DIR / "output")
@@ -1326,6 +1326,9 @@ def extract_metadata(contract, cache):
                 start     = chunk_idx * CHUNK_SIZE
                 end       = min(start + CHUNK_SIZE, num_pages)
                 pages_b64 = [image_to_base64(p["image"]) for p in pages[start:end]]
+                _img_mb   = sum(len(b) for b in pages_b64) / 1_048_576
+                print(f"        chunk {chunk_idx + 1}/{total_chunks}: "
+                      f"pages {start + 1}–{end}, image payload {_img_mb:.1f} MB", flush=True)
 
                 raw    = call_llm_chunk(pages_b64, chunk_idx + 1, total_chunks, contract["filename"])
                 parsed = parse_llm_json(raw)
@@ -1339,7 +1342,17 @@ def extract_metadata(contract, cache):
             result["extraction_failed"] = False
 
     except Exception as e:
-        print(f"\n    ERROR extracting {contract['filename']}: {e}")
+        # Unwrap tenacity RetryError → underlying httpx HTTPStatusError so the
+        # HTTP status code (e.g. 413 Payload Too Large) is visible in the log.
+        err_detail = str(e)
+        try:
+            underlying = e.last_attempt.exception()  # tenacity RetryError API
+            status_code = getattr(getattr(underlying, "response", None), "status_code", None)
+            if status_code:
+                err_detail = f"HTTP {status_code} after retries — {underlying}"
+        except AttributeError:
+            pass
+        print(f"\n    ERROR extracting {contract['filename']}: {err_detail}")
         result = {
             "contract_type":        "Unknown",
             "amendment_number":     None,
