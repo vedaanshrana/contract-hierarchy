@@ -1,0 +1,31 @@
+# ===========================================================================
+# DENY-BY-DEFAULT .gitignore  (safest policy for sensitive legal data)
+# ---------------------------------------------------------------------------
+# We ignore EVERYTHING first, then explicitly allow back only the source code
+# and config *templates*. This guarantees that client contract files (PDFs,
+# DOCX, TIFFs, .msg, etc.), the .env secret file, and generated output can
+# NEVER be committed by accident — far safer than trying to blocklist every
+# contract file type or client folder by name.
+#
+# >>> To track a NEW source file later, add another "!<filename>" line below. <<<
+# ===========================================================================
+
+# 1) Ignore everything — including:
+#       - the "BLUE CROSS TEXAS FEDERAL CREDIT UNION/" contract folder
+#         (and any other client/contract folder you drop in later)
+#       - output/ and extraction_cache.json (generated artifacts)
+#       - .env (your real API key)
+#       - __pycache__/, *.pyc, virtual envs, IDE files, etc.
+*
+
+# 2) Allow back ONLY the tool's source + setup files (all live at the repo root).
+!.gitignore
+!.env.example
+!requirements.txt
+!VDI_SETUP.md
+!contract_hierarchy_analyzer.py
+!PC-PH-ProductNames_Dictionary_v2.xlsx
+
+# NOTE: .env is intentionally NOT allowed back — it holds your real API key and
+# must never leave your machine / the VDI. The contract folders and output/ are
+# also intentionally excluded; place the contracts directly in the VDI instead.

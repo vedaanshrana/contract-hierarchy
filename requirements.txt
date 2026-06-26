@@ -1,0 +1,21 @@
+# Python dependencies for contract_hierarchy_analyzer.py
+# Install with:  pip install -r requirements.txt
+#
+# Tip for a locked-down VDI: create a virtual environment first so you don't
+# need admin rights and don't disturb system Python:
+#   python -m venv .venv
+#   .venv\Scripts\activate          (Windows PowerShell)
+#   pip install -r requirements.txt
+
+pymupdf          # imported as "fitz" — PDF rendering
+openai           # OpenAI Python SDK (Responses API, "openai" backend)
+httpx            # direct HTTP calls to the Fiserv Foundation gateway ("fiserv" backend)
+pandas
+openpyxl         # Excel read/write (product dictionary + reports)
+plotly           # interactive hierarchy charts
+tenacity         # retry/backoff on API calls
+pillow           # imported as "PIL" — image handling
+
+# --- Optional: only needed for certain input file types ---
+docx2pdf         # only if a client folder contains .docx files (needs MS Word/Office installed)
+extract-msg      # only if a client folder contains .msg (Outlook) files
